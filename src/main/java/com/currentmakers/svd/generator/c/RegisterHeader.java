@@ -21,7 +21,7 @@ public class RegisterHeader
     public String generate()
     {
         StringBuilder sb = new StringBuilder();
-        String registerTypeName = peripheralName + "_" + register.name.toUpperCase() + "_Register";
+        String registerTypeName = peripheralName + "_" + register.name.toUpperCase();
 
         // Comment block
         sb.append("/**\n");
@@ -50,7 +50,7 @@ public class RegisterHeader
         {
             sb.append("    struct {\n");
 
-            // CRITICAL: Sort fields by bit offset to ensure correct order
+            // Sort fields by bit offset
             List<BitField> sortedFields = new ArrayList<>(register.fields);
             sortedFields.sort(Comparator.comparingInt(f -> f.offset));
 

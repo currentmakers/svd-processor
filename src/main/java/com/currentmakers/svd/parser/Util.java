@@ -32,12 +32,12 @@ public class Util
         return textContent;
     }
 
-    static long getNumber(Element element, String tag)
+    static Long getNumber(Element element, String tag)
     {
         NodeList list = element.getElementsByTagName(tag);
         Node item = list.item(0);
         if(item == null)
-            return 0;
+            return null;
         String text = item.getTextContent();
         if(text.startsWith("0x") || text.startsWith("0X"))
             return Long.parseLong(text.substring(2), 16);

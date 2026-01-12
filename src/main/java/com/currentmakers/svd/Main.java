@@ -7,8 +7,11 @@ import com.currentmakers.svd.parser.Parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Main
 {
@@ -59,7 +62,7 @@ public class Main
         }
     }
 
-    private static CommandLineArgs parseCommandLine(String[] args)
+    private static CommandLineArgs parseCommandLine(String[] args) throws IOException
     {
         if (args.length == 0)
         {
@@ -107,15 +110,8 @@ public class Main
                         return null;
                     }
                     // Find all .svd files in the directory
-                    File[] svdFiles = dir.listFiles((d, name) -> 
-                        name.toLowerCase().endsWith(".svd"));
-                    if (svdFiles != null)
-                    {
-                        for (File f : svdFiles)
-                        {
-                            svdPaths.add(f.getAbsolutePath());
-                        }
-                    }
+                    List<String> svdFiles = findFiles(dir);
+                    svdPaths.addAll(svdFiles);
                     break;
 
                 case "-f", "--file":
@@ -183,6 +179,18 @@ public class Main
         }
 
         return result;
+    }
+
+    private static List<String> findFiles(File dir) throws IOException {
+        try (Stream<Path> pathStream = Files.find(dir.toPath(), Integer.MAX_VALUE, (path, attrs) -> {
+            // Check if it's a file AND ends with the extension
+            return attrs.isRegularFile() &&
+                    path.getFileName().toString().endsWith(".svd");
+        })) {
+            return pathStream
+                    .map(p -> p.toAbsolutePath().toString())
+                    .toList();
+        }
     }
 
     private static void printUsage()

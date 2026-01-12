@@ -1,9 +1,6 @@
 package com.currentmakers.svd.generator.c;
 
 import com.currentmakers.svd.parser.Peripheral;
-
-import java.util.ArrayList;
-import java.util.Comparator;
 import com.currentmakers.svd.parser.Register;
 
 import java.util.ArrayList;
@@ -13,17 +10,24 @@ import java.util.List;
 public class PeripheralHeader
 {
     private final Peripheral peripheral;
+    private final String typeName;
 
     public PeripheralHeader(Peripheral peripheral)
     {
+        this(peripheral, peripheral.name);
+    }
+
+    public PeripheralHeader(Peripheral peripheral, String typeName)
+    {
         this.peripheral = peripheral;
+        this.typeName = typeName;
     }
 
     public String generate()
     {
         StringBuilder sb = new StringBuilder();
-        String guardName = peripheral.name.toUpperCase() + "_H";
-        String peripheralName = peripheral.name.toUpperCase();
+        String guardName = typeName.toUpperCase() + "_H";
+        String peripheralName = typeName.toUpperCase();
 
         // Header guard
         sb.append("#ifndef ").append(guardName).append("\n");
@@ -31,7 +35,7 @@ public class PeripheralHeader
 
         // Header comment
         sb.append("/**\n");
-        sb.append(" * @file ").append(peripheral.name.toLowerCase()).append(".h\n");
+        sb.append(" * @file ").append(typeName.toLowerCase()).append(".h\n");
         sb.append(" * @brief ").append(peripheral.description).append("\n");
         if (peripheral.group != null)
         {
@@ -75,7 +79,7 @@ public class PeripheralHeader
                 currentOffset = register.offset;
             }
 
-            String registerType = peripheralName + "_" + register.name.toUpperCase() + "_Register";
+            String registerType = peripheralName + "_" + register.name.toUpperCase();
             sb.append("    ").append(registerType).append(" ").append(register.name.toUpperCase()).append(";");
             sb.append("  /* 0x").append(String.format("%02X", register.offset));
             sb.append(": ").append(register.description).append(" */\n");
@@ -83,7 +87,7 @@ public class PeripheralHeader
             currentOffset += register.size / 8;
         }
 
-        sb.append("} ").append(peripheralName).append("_TypeDef;\n\n");
+        sb.append("} ").append(peripheralName).append("_t;\n\n");
 
         // Footer
         sb.append("#endif /* ").append(guardName).append(" */\n");
