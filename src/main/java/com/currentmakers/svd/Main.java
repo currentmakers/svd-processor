@@ -1,7 +1,8 @@
 package com.currentmakers.svd;
 
+import com.currentmakers.svd.generator.GenerationOptions;
+import com.currentmakers.svd.generator.asm.AsmGenerator;
 import com.currentmakers.svd.generator.c.CGenerator;
-import com.currentmakers.svd.generator.c.GenerationOptions;
 import com.currentmakers.svd.parser.Device;
 import com.currentmakers.svd.parser.Parser;
 
@@ -42,9 +43,14 @@ public class Main
             switch (cmdArgs.language.toLowerCase())
             {
                 case "c":
-                    GenerationOptions options = new GenerationOptions();
-                    CGenerator generator = new CGenerator(cmdArgs.outputDir, options, devices);
-                    generator.generate();
+                    GenerationOptions cOptions = new GenerationOptions();
+                    CGenerator cgenerator = new CGenerator(cmdArgs.outputDir, cOptions, devices);
+                    cgenerator.generate();
+                    break;
+                case "asm":
+                    GenerationOptions asmOptions = new GenerationOptions();
+                    AsmGenerator asmGenerator = new AsmGenerator(cmdArgs.outputDir, asmOptions, devices);
+                    asmGenerator.generate();
                     break;
                 default:
                     System.err.println("Error: Unsupported language '" + cmdArgs.language + "'");

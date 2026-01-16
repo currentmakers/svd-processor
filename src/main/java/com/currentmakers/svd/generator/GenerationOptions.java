@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.c;
+package com.currentmakers.svd.generator;
 
 public class GenerationOptions
 {

@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.c;
+package com.currentmakers.svd.generator.asm;
 
 import com.currentmakers.svd.generator.GenerationOptions;
 import com.currentmakers.svd.parser.Device;
@@ -7,15 +7,21 @@ import com.currentmakers.svd.parser.Peripheral;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class CGenerator
+public class AsmGenerator
 {
     private final File rootDirectory;
     private final GenerationOptions options;
     private final List<Device> devices;
 
-    public CGenerator(File rootDirectory, GenerationOptions options, List<Device> devices)
+    public AsmGenerator(File rootDirectory, GenerationOptions options, List<Device> devices)
     {
         this.rootDirectory = rootDirectory;
         this.options = options;
@@ -41,87 +47,72 @@ public class CGenerator
         }
 
         // Group peripherals by structural equivalence
-        Map<Peripheral, List<Peripheral>> structuralGroups = groupByStructure(device.peripherals);
+//        Map<Peripheral, List<Peripheral>> structuralGroups = groupByStructure(device.peripherals);
 
         // Debug output
         System.out.println("\nStructural groups for " + device.name + ":");
-        for (Map.Entry<Peripheral, List<Peripheral>> entry : structuralGroups.entrySet())
+//        for (Map.Entry<Peripheral, List<Peripheral>> entry : structuralGroups.entrySet())
+        for (Peripheral p : device.peripherals)
         {
-            System.out.print("  " + entry.getKey().name + ": ");
-            for (Peripheral p : entry.getValue())
-            {
-                System.out.print(p.name + " ");
-            }
+            System.out.print(p.name + " ");
             System.out.println();
         }
 
-        // Determine type names for each structural group
-        Map<Peripheral, String> representativeTypeNames = determineTypeNames(structuralGroups);
-
-        // Debug output
-        System.out.println("\nType names:");
-        for (Map.Entry<Peripheral, String> entry : representativeTypeNames.entrySet())
-        {
-            System.out.println("  " + entry.getKey().name + " -> " + entry.getValue());
-        }
-
         // Track which representatives we've already generated
-        Set<Peripheral> generatedRepresentatives = new HashSet<>();
+        Set<Peripheral> allPeripherals = new HashSet<>();
 
         // Generate peripheral headers (only for representative peripherals)
-        for (Peripheral representative : structuralGroups.keySet())
+        for (Peripheral peripheral : device.peripherals)
         {
-            if (!generatedRepresentatives.contains(representative))
-            {
-                String typeName = representativeTypeNames.get(representative);
-                PeripheralHeader peripheralHeader = new PeripheralHeader(representative, typeName);
-                String fileName = typeName.toLowerCase() + ".h";
-                writeFile(new File(deviceDir, fileName), peripheralHeader.generate());
-                generatedRepresentatives.add(representative);
-            }
+            PeripheralEquates peripheralEquates = new PeripheralEquates(peripheral);
+            String fileName = peripheral.name.toLowerCase() + ".s";
+            writeFile(new File(deviceDir, fileName), peripheralEquates.generate());
+            allPeripherals.add(peripheral);
         }
 
         // Generate main device header (umbrella)
-        DeviceHeader deviceHeader = new DeviceHeader(device, structuralGroups, representativeTypeNames);
-        String deviceHeaderName = device.name.toLowerCase() + ".h";
-        writeFile(new File(deviceDir, deviceHeaderName), deviceHeader.generate());
+        DeviceEquates deviceEquates = new DeviceEquates(device);
+        String deviceHeaderName = device.name.toLowerCase() + ".s";
+        writeFile(new File(deviceDir, deviceHeaderName), deviceEquates.generate());
+        String commonContent = new CommonGenerator().generate();
+        writeFile(new File(deviceDir, "../common.s"), commonContent);
     }
 
-    /**
-     * Group peripherals by structural equivalence.
-     * Returns a map where the key is a representative peripheral from each group,
-     * and the value is the list of all peripherals in that group.
-     */
-    private Map<Peripheral, List<Peripheral>> groupByStructure(List<Peripheral> peripherals)
-    {
-        Map<Peripheral, List<Peripheral>> groups = new LinkedHashMap<>();
-
-        for (Peripheral peripheral : peripherals)
-        {
-            // Find if this peripheral matches any existing group
-            Peripheral representative = null;
-            for (Peripheral rep : groups.keySet())
-            {
-                if (areStructurallyEqual(peripheral, rep))
-                {
-                    representative = rep;
-                    break;
-                }
-            }
-
-            // If no match found, this peripheral becomes a new representative
-            if (representative == null)
-            {
-                representative = peripheral;
-                groups.put(representative, new ArrayList<>());
-            }
-
-            // Add peripheral to its group
-            groups.get(representative).add(peripheral);
-        }
-
-        return groups;
-    }
+//    /**
+//     * Group peripherals by structural equivalence.
+//     * Returns a map where the key is a representative peripheral from each group,
+//     * and the value is the list of all peripherals in that group.
+//     */
+//    private Map<Peripheral, List<Peripheral>> groupByStructure(List<Peripheral> peripherals)
+//    {
+//        Map<Peripheral, List<Peripheral>> groups = new LinkedHashMap<>();
+//
+//        for (Peripheral peripheral : peripherals)
+//        {
+//            // Find if this peripheral matches any existing group
+//            Peripheral representative = null;
+//            for (Peripheral rep : groups.keySet())
+//            {
+//                if (areStructurallyEqual(peripheral, rep))
+//                {
+//                    representative = rep;
+//                    break;
+//                }
+//            }
+//
+//            // If no match found, this peripheral becomes a new representative
+//            if (representative == null)
+//            {
+//                representative = peripheral;
+//                groups.put(representative, new ArrayList<>());
+//            }
+//
+//            // Add peripheral to its group
+//            groups.get(representative).add(peripheral);
+//        }
+//
+//        return groups;
+//    }
 
     /**
      * Check if two peripherals are structurally equal (same register layout).
@@ -322,6 +313,7 @@ public class CGenerator
         try (FileWriter writer = new FileWriter(file))
         {
             writer.write(content);
+            writer.write("\n.ltorg\n");
         }
     }
 }
