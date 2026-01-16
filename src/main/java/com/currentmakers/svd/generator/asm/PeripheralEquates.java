@@ -59,31 +59,8 @@ public class PeripheralEquates
         sb.append("@ @brief ").append(peripheral.description.replaceAll(" +", " ")).append("\n");
         sb.append("@\n");
 
-        // Registers should be generated as (RNG as sample);
-        // ldr r0, =0x50060800,RNGDR
-        // .equ RNG, 0x50060800
-        // .equ RNG_CR, (RNG + 0x0)
-        // .equ RNG_SR, (RNG + 0x04)
-        // .equ RNG_DR, (RNG + 0x08)
-        // .equ RND_CR_IE, Bit3
-        // .equ RND_CR_RNGEN, Bit2
-        // .equ RND_SR_DRDY, Bit0
-        // .equ RND_SR_CECS, Bit1
-        // .equ RND_SR_SECS, Bit2
-        // .equ RND_SR_CEIS, Bit5
-        // .equ RND_SR_SEIS, Bit6
-
         for (Register register : sortedRegisters)
         {
-//            // Add padding for gaps between registers
-//            if (register.offset > currentOffset)
-//            {
-//                int padding = register.offset - currentOffset;
-//                sb.append("    uint8_t RESERVED_").append(String.format("0x%X", currentOffset));
-//                sb.append("[").append(padding).append("];");
-//                sb.append("  /* 0x").append(String.format("%02X", currentOffset)).append(" - Reserved */\n");
-//                currentOffset = register.offset;
-//            }
             StringBuilder b = new StringBuilder();
             b.append(".equ ")
                 .append(peripheral.name.toUpperCase())
