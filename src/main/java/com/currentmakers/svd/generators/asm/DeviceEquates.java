@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.asm;
+package com.currentmakers.svd.generators.asm;
 
 import com.currentmakers.svd.parser.Device;
 import com.currentmakers.svd.parser.Peripheral;
@@ -29,7 +29,7 @@ public class DeviceEquates
         sb.append("@\n\n");
 
         // Include all representative peripheral headers (only once per structure)
-        sb.append("@ Peripheral Headers\n");
+        sb.append("@ Peripheral Headers\n\n");
         Set<String> includedHeaders = new HashSet<>();
         for(Peripheral peripheral : device.peripherals)
         {
@@ -38,7 +38,7 @@ public class DeviceEquates
 
             if(!includedHeaders.contains(headerName))
             {
-                sb.append(".include \"").append(headerName).append(".h\"\n");
+                sb.append(".include ").append(headerName).append(".d\n");
                 includedHeaders.add(headerName);
             }
         }
@@ -48,7 +48,6 @@ public class DeviceEquates
         sb.append("@ Peripheral Instance Definitions\n");
         for(Peripheral peripheral : device.peripherals)
         {
-            String typeName = peripheral.name;
             String baseAddr = String.format("0x%08X", peripheral.baseAddress);
 
             StringBuilder b = new StringBuilder();

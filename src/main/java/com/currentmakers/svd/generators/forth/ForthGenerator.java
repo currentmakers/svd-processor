@@ -1,21 +1,27 @@
-package com.currentmakers.svd.generator.c;
+package com.currentmakers.svd.generators.forth;
 
-import com.currentmakers.svd.generator.GenerationOptions;
+import com.currentmakers.svd.generators.GenerationOptions;
 import com.currentmakers.svd.parser.Device;
 import com.currentmakers.svd.parser.Peripheral;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class CGenerator
+public class ForthGenerator
 {
     private final File rootDirectory;
     private final GenerationOptions options;
     private final List<Device> devices;
 
-    public CGenerator(File rootDirectory, GenerationOptions options, List<Device> devices)
+    public ForthGenerator(File rootDirectory, GenerationOptions options, List<Device> devices)
     {
         this.rootDirectory = rootDirectory;
         this.options = options;
@@ -68,23 +74,23 @@ public class CGenerator
         // Track which representatives we've already generated
         Set<Peripheral> generatedRepresentatives = new HashSet<>();
 
-        // Generate peripheral headers (only for representative peripherals)
+        // Generate peripheral words (only for representative peripherals)
         for (Peripheral representative : structuralGroups.keySet())
         {
             if (!generatedRepresentatives.contains(representative))
             {
                 String typeName = representativeTypeNames.get(representative);
-                PeripheralHeader peripheralHeader = new PeripheralHeader(representative, typeName);
-                String fileName = typeName.toLowerCase() + ".h";
-                writeFile(new File(deviceDir, fileName), peripheralHeader.generate());
+                PeripheralWords peripheralWords = new PeripheralWords(representative, typeName);
+                String fileName = typeName.toLowerCase() + ".fs";
+                writeFile(new File(deviceDir, fileName), peripheralWords.generate());
                 generatedRepresentatives.add(representative);
             }
         }
 
-        // Generate main device header (umbrella)
-        DeviceHeader deviceHeader = new DeviceHeader(device, structuralGroups, representativeTypeNames);
-        String deviceHeaderName = device.name.toLowerCase() + ".h";
-        writeFile(new File(deviceDir, deviceHeaderName), deviceHeader.generate());
+        // Generate main device loader (umbrella)
+        DeviceLoader deviceLoader = new DeviceLoader(device, structuralGroups, representativeTypeNames);
+        String deviceLoaderName = device.name.toLowerCase() + ".fload";
+        writeFile(new File(deviceDir, deviceLoaderName), deviceLoader.generate());
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.asm;
+package com.currentmakers.svd.generators.asm;
 
 import com.currentmakers.svd.parser.BitField;
 import com.currentmakers.svd.parser.Register;
@@ -21,7 +21,6 @@ public class RegisterEquates
     public String generate()
     {
         StringBuilder sb = new StringBuilder();
-        String registerTypeName = peripheralName + "_" + register.name.toUpperCase();
 
         // Comment block
         sb.append("@\n");
@@ -34,7 +33,6 @@ public class RegisterEquates
         }
         sb.append("@\n\n");
 
-        // Bitfield struct (only if there are fields)
         if(!register.fields.isEmpty())
         {
             // Sort fields by bit offset

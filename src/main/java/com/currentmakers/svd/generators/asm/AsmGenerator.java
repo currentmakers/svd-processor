@@ -1,6 +1,6 @@
-package com.currentmakers.svd.generator.asm;
+package com.currentmakers.svd.generators.asm;
 
-import com.currentmakers.svd.generator.GenerationOptions;
+import com.currentmakers.svd.generators.GenerationOptions;
 import com.currentmakers.svd.parser.Device;
 import com.currentmakers.svd.parser.Peripheral;
 

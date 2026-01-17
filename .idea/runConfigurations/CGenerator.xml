@@ -2,7 +2,7 @@
   <configuration default="false" name="CGenerator" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.currentmakers.svd.Main" />
     <module name="svd-processor.main" />
-    <option name="PROGRAM_PARAMETERS" value="-o ../cmclib -d $PROJECT_DIR$/../stm32-svd/svd" />
+    <option name="PROGRAM_PARAMETERS" value="-o ../foundation-c -d $PROJECT_DIR$/../stm32-svd/svd" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.currentmakers.svd.*" />

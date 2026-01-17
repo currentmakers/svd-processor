@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.asm;
+package com.currentmakers.svd.generators.asm;
 
 import com.currentmakers.svd.parser.Peripheral;
 import com.currentmakers.svd.parser.Register;

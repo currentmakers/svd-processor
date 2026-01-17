@@ -1,4 +1,4 @@
-package com.currentmakers.svd.generator.c;
+package com.currentmakers.svd.generators.c;
 
 import com.currentmakers.svd.parser.BitField;
 import com.currentmakers.svd.parser.Register;

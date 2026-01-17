@@ -1,8 +1,9 @@
 package com.currentmakers.svd;
 
-import com.currentmakers.svd.generator.GenerationOptions;
-import com.currentmakers.svd.generator.asm.AsmGenerator;
-import com.currentmakers.svd.generator.c.CGenerator;
+import com.currentmakers.svd.generators.GenerationOptions;
+import com.currentmakers.svd.generators.asm.AsmGenerator;
+import com.currentmakers.svd.generators.c.CGenerator;
+import com.currentmakers.svd.generators.forth.ForthGenerator;
 import com.currentmakers.svd.parser.Device;
 import com.currentmakers.svd.parser.Parser;
 
@@ -51,6 +52,11 @@ public class Main
                     GenerationOptions asmOptions = new GenerationOptions();
                     AsmGenerator asmGenerator = new AsmGenerator(cmdArgs.outputDir, asmOptions, devices);
                     asmGenerator.generate();
+                    break;
+                case "forth":
+                    GenerationOptions forthOptions = new GenerationOptions();
+                    ForthGenerator forthGenerator = new ForthGenerator(cmdArgs.outputDir, forthOptions, devices);
+                    forthGenerator.generate();
                     break;
                 default:
                     System.err.println("Error: Unsupported language '" + cmdArgs.language + "'");
