@@ -38,7 +38,6 @@ public class ForthGenerator
 
     private void generateDevice(Device device) throws IOException
     {
-        // Create device directory
         String deviceDirName = device.name.toLowerCase();
         File deviceDir = new File(rootDirectory, deviceDirName);
         if (!deviceDir.exists())
@@ -46,10 +45,8 @@ public class ForthGenerator
             deviceDir.mkdirs();
         }
 
-        // Group peripherals by structural equivalence
         Map<Peripheral, List<Peripheral>> structuralGroups = groupByStructure(device.peripherals);
 
-        // Debug output
         System.out.println("\nStructural groups for " + device.name + ":");
         for (Map.Entry<Peripheral, List<Peripheral>> entry : structuralGroups.entrySet())
         {
@@ -61,20 +58,16 @@ public class ForthGenerator
             System.out.println();
         }
 
-        // Determine type names for each structural group
         Map<Peripheral, String> representativeTypeNames = determineTypeNames(structuralGroups);
 
-        // Debug output
         System.out.println("\nType names:");
         for (Map.Entry<Peripheral, String> entry : representativeTypeNames.entrySet())
         {
             System.out.println("  " + entry.getKey().name + " -> " + entry.getValue());
         }
 
-        // Track which representatives we've already generated
         Set<Peripheral> generatedRepresentatives = new HashSet<>();
 
-        // Generate peripheral words (only for representative peripherals)
         for (Peripheral representative : structuralGroups.keySet())
         {
             if (!generatedRepresentatives.contains(representative))
@@ -87,7 +80,6 @@ public class ForthGenerator
             }
         }
 
-        // Generate main device loader (umbrella)
         DeviceLoader deviceLoader = new DeviceLoader(device, structuralGroups, representativeTypeNames);
         String deviceLoaderName = device.name.toLowerCase() + ".fload";
         writeFile(new File(deviceDir, deviceLoaderName), deviceLoader.generate());
@@ -104,7 +96,6 @@ public class ForthGenerator
 
         for (Peripheral peripheral : peripherals)
         {
-            // Find if this peripheral matches any existing group
             Peripheral representative = null;
             for (Peripheral rep : groups.keySet())
             {
@@ -115,14 +106,12 @@ public class ForthGenerator
                 }
             }
 
-            // If no match found, this peripheral becomes a new representative
             if (representative == null)
             {
                 representative = peripheral;
                 groups.put(representative, new ArrayList<>());
             }
 
-            // Add peripheral to its group
             groups.get(representative).add(peripheral);
         }
 
@@ -135,13 +124,11 @@ public class ForthGenerator
      */
     private boolean areStructurallyEqual(Peripheral p1, Peripheral p2)
     {
-        // Must have same number of registers
         if (p1.registers.size() != p2.registers.size())
         {
             return false;
         }
         
-        // All registers must be equal (the Register.equals ignores resetValue)
         return p1.registers.equals(p2.registers);
     }
 
@@ -156,7 +143,6 @@ public class ForthGenerator
     {
         Map<Peripheral, String> typeNames = new HashMap<>();
         
-        // First pass: compute potential stripped names
         Map<Peripheral, String> candidateNames = new HashMap<>();
         for (Map.Entry<Peripheral, List<Peripheral>> entry : structuralGroups.entrySet())
         {
@@ -166,23 +152,19 @@ public class ForthGenerator
             String candidateName;
             if (group.size() == 1)
             {
-                // Single peripheral - use its name as-is
                 candidateName = representative.name;
             }
             else
             {
-                // Multiple peripherals - find common prefix
                 String commonPrefix = findCommonPrefix(group);
                 
-                // Only use the stripped prefix if it's reasonable (at least 3 chars and looks valid)
-                if (commonPrefix != null && commonPrefix.length() >= 3 && 
-                    !commonPrefix.matches(".*\\d$"))  // Don't end with a digit
+                if (commonPrefix != null && commonPrefix.length() >= 3 &&
+                    !commonPrefix.matches(".*\\d$"))
                 {
                     candidateName = commonPrefix;
                 }
                 else
                 {
-                    // Use representative name if prefix is too short or ends with digit
                     candidateName = representative.name;
                 }
             }
@@ -190,20 +172,17 @@ public class ForthGenerator
             candidateNames.put(representative, candidateName);
         }
         
-        // Second pass: detect and resolve collisions
         Map<String, List<Peripheral>> nameCollisions = new HashMap<>();
         for (Map.Entry<Peripheral, String> entry : candidateNames.entrySet())
         {
             nameCollisions.computeIfAbsent(entry.getValue(), k -> new ArrayList<>()).add(entry.getKey());
         }
 
-        // Assign final names
         for (Map.Entry<Peripheral, String> entry : candidateNames.entrySet())
         {
             Peripheral representative = entry.getKey();
             String candidateName = entry.getValue();
 
-            // If there's a collision, use representative's full name to distinguish
             if (nameCollisions.get(candidateName).size() > 1)
             {
                 typeNames.put(representative, representative.name);
@@ -232,24 +211,19 @@ public class ForthGenerator
             return stripInstanceSuffix(peripherals.get(0).name);
         }
 
-        // Find the common prefix among all names
         String prefix = peripherals.get(0).name;
         for (int i = 1; i < peripherals.size(); i++)
         {
             prefix = commonPrefix(prefix, peripherals.get(i).name);
         }
         
-        // Don't strip if the common prefix is already too short
         if (prefix.length() <= 2)
         {
-            // Just use first peripheral name
             return peripherals.get(0).name;
         }
         
-        // Strip any trailing digits or single letter from the common prefix
         String stripped = stripInstanceSuffix(prefix);
         
-        // If stripping made it too short, use the unstripped prefix
         if (stripped.length() < 3)
         {
             return peripherals.get(0).name;
@@ -289,14 +263,12 @@ public class ForthGenerator
         
         String original = name;
         
-        // Strip trailing digits
         int endIdx = name.length();
         while (endIdx > 0 && Character.isDigit(name.charAt(endIdx - 1)))
         {
             endIdx--;
         }
         
-        // If we stripped digits and there's a single trailing letter, strip it too
         if (endIdx < name.length() && endIdx > 0 && Character.isLetter(name.charAt(endIdx - 1)))
         {
             if (endIdx >= 2 && Character.isLetter(name.charAt(endIdx - 2)))
@@ -304,7 +276,6 @@ public class ForthGenerator
                 char lastChar = name.charAt(endIdx - 1);
                 char prevChar = name.charAt(endIdx - 2);
                 
-                // Strip single uppercase letter suffix after uppercase letters (GPIOA -> GPIO)
                 if (Character.isUpperCase(lastChar) && Character.isUpperCase(prevChar))
                 {
                     endIdx--;
@@ -314,7 +285,6 @@ public class ForthGenerator
         
         String result = name.substring(0, endIdx);
         
-        // If result is empty or too short, return original
         if (result.isEmpty() || result.length() < 2)
         {
             return original;

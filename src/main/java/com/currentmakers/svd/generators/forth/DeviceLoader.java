@@ -86,7 +86,6 @@ public class DeviceLoader
         }
         sb.append("\n");
 
-        // Footer
         sb.append(": ")
             .append(guardName)
             .append(" ;")

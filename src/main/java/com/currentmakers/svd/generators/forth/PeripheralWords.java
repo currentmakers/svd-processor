@@ -12,11 +12,6 @@ public class PeripheralWords
     private final Peripheral peripheral;
     private final String typeName;
 
-    public PeripheralWords(Peripheral peripheral)
-    {
-        this(peripheral, peripheral.name);
-    }
-
     public PeripheralWords(Peripheral peripheral, String typeName)
     {
         this.peripheral = peripheral;
@@ -29,7 +24,8 @@ public class PeripheralWords
 
         sb.append("\\\n");
         sb.append("\\ @file ").append(typeName.toLowerCase()).append(".fs\n");
-        sb.append("\\ @brief ").append(peripheral.description.replaceAll(" +", " ")).append("\n");
+        if( peripheral.description != null && !peripheral.description.isEmpty())
+            sb.append("\\ @brief ").append(peripheral.description.replaceAll(" +", " ")).append("\n");
         if (peripheral.group != null)
         {
             sb.append("\\ @group ").append(peripheral.group).append("\n");
@@ -44,11 +40,9 @@ public class PeripheralWords
 
         sb.append("[ifndef] ").append(guardName).append("\n");
 
-        // Sort registers by offset to ensure correct order
         List<Register> sortedRegisters = new ArrayList<>(peripheral.registers);
         sortedRegisters.sort(Comparator.comparingInt(r -> r.offset));
 
-        // Generate register type definitions
         for (Register register : sortedRegisters)
         {
             sb.append("\n")
@@ -61,9 +55,9 @@ public class PeripheralWords
             sb.append("  [then]\n\n");
         }
 
-        // Generate peripheral structure
         sb.append("  \\\n");
-        sb.append("  \\ @brief ").append(peripheral.description.replaceAll(" +", " ")).append("\n");
+        if( peripheral.description != null && !peripheral.description.isEmpty())
+            sb.append("  \\ @brief ").append(peripheral.description.replaceAll(" +", " ")).append("\n");
         sb.append("  \\\n");
 
         for (Register register : sortedRegisters)
@@ -77,11 +71,11 @@ public class PeripheralWords
                 spaces = 4;
             b.repeat(' ', spaces);
             sb.append(b);
-            sb.append("\\ ").append(register.description.replaceAll(" +", " "));
+            if(register.description != null && !register.description.isEmpty())
+                sb.append("\\ ").append(register.description.replaceAll(" +", " "));
             sb.append("\n");
         }
 
-        // Footer
         sb.append("\n: ").append(guardName).append(" ; ");
         sb.append("[then]\n");
 

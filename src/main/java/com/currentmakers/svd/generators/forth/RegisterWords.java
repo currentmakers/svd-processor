@@ -23,9 +23,9 @@ public class RegisterWords
         StringBuilder sb = new StringBuilder();
         String registerTypeName = (peripheralName + "_" + register.name).toUpperCase();
 
-        // Comment block
         sb.append("    \\\n");
-        sb.append("    \\ @brief ").append(register.description.replaceAll(" +", " ")).append("\n");
+        if(register.description != null && !register.description.isEmpty())
+            sb.append("    \\ @brief ").append(register.description.replaceAll(" +", " ")).append("\n");
         sb.append("    \\ Address offset: 0x").append(String.format("%02X", register.offset)).append("\n");
         sb.append("    \\ Reset value: 0x").append(String.format("%08X", register.resetValue)).append("\n");
         if(register.readOnly)
@@ -33,7 +33,7 @@ public class RegisterWords
             sb.append("    \\ Access: Read-only\n");
         }
         sb.append("    \\\n");
-        // Sort fields by bit offset
+
         List<BitField> sortedFields = new ArrayList<>(register.fields);
         sortedFields.sort(Comparator.comparingInt(f -> f.offset));
 
@@ -47,7 +47,6 @@ public class RegisterWords
                 spaces = 4;
             b.repeat(' ', spaces);
 
-            // Build comment with bit range and description
             b.append(String.format("\\ [0x%02x", field.offset));
             if(field.width > 1)
             {
@@ -55,10 +54,8 @@ public class RegisterWords
             }
             b.append("] ");
 
-            // Add description if available
             if(field.description != null && !field.description.isEmpty())
             {
-                // Clean up the description for single-line comment
                 String cleanDesc = field.description.replaceAll("\\s+", " ").trim();
                 b.append(cleanDesc);
             }
